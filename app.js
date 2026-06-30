@@ -1,8 +1,8 @@
 const STORAGE_KEY = 'budget-flow-state-v1';
 
-const currency = new Intl.NumberFormat('en-US', {
+const currency = new Intl.NumberFormat('en-IN', {
   style: 'currency',
-  currency: 'USD',
+  currency: 'INR',
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
@@ -13,6 +13,8 @@ const initialState = {
   transferAmount: '218.00',
   transferName: 'Rita Davis',
   recipientNumber: '**** 9303',
+  recipientIndex: 0,
+  activeMonthIndex: 0,
   accounts: [
     {
       id: 'emma',
@@ -61,11 +63,19 @@ const initialState = {
     { label: 'Sat', value: 72 },
     { label: 'Sun', value: 38 },
   ],
+  recipients: [
+    { name: 'Rita Davis', number: '**** 9303', avatar: 'R' },
+    { name: 'Noah Patel', number: '**** 2218', avatar: 'N' },
+    { name: 'Mia Johnson', number: '**** 7741', avatar: 'M' },
+  ],
+  months: ['June', 'July', 'August'],
 };
 
 let state = loadState();
 
 const els = {
+  screenSwitcherButtons: Array.from(document.querySelectorAll('.switcher-pill')),
+  screenButtons: Array.from(document.querySelectorAll('[data-screen-target]')),
   activeAvatar: document.getElementById('activeAvatar'),
   activeName: document.getElementById('activeName'),
   activeBalance: document.getElementById('activeBalance'),
@@ -83,13 +93,26 @@ const els = {
   expenseTotal: document.getElementById('expenseTotal'),
   categoryLegend: document.getElementById('categoryLegend'),
   expenseList: document.getElementById('expenseList'),
+  historyList: document.getElementById('historyList'),
   flowBars: document.getElementById('flowBars'),
   exportReport: document.getElementById('exportReport'),
+  monthToggle: document.getElementById('monthToggle'),
+  monthMenu: document.getElementById('monthMenu'),
+  optionsOverlay: document.getElementById('optionsOverlay'),
+  historyOverlay: document.getElementById('historyOverlay'),
+  liveModeState: document.getElementById('liveModeState'),
   openTransferButtons: Array.from(document.querySelectorAll('[data-open-transfer]')),
-  scrollTargets: Array.from(document.querySelectorAll('[data-scroll-to]')),
+  cycleRecipientButtons: Array.from(document.querySelectorAll('[data-cycle-recipient]')),
+  openOptionsButtons: Array.from(document.querySelectorAll('[data-open-options]')),
+  openHistoryButtons: Array.from(document.querySelectorAll('[data-open-history]')),
+  closeSheetButtons: Array.from(document.querySelectorAll('[data-close-sheet]')),
+  liveToggleButtons: Array.from(document.querySelectorAll('[data-live-toggle]')),
   keypad: Array.from(document.querySelectorAll('.keypad .key')),
   accountCarousel: document.querySelector('.carousel-track'),
+  screens: Array.from(document.querySelectorAll('.screen')),
 };
+
+state.view = 'dashboard';
 
 function loadState() {
   try {
@@ -102,12 +125,15 @@ function loadState() {
     return {
       ...structuredClone(initialState),
       ...parsed,
+      view: 'dashboard',
       accounts: parsed.accounts?.length ? parsed.accounts : structuredClone(initialState.accounts),
       categories: initialState.categories,
       weeklyFlow: parsed.weeklyFlow?.length ? parsed.weeklyFlow : structuredClone(initialState.weeklyFlow),
+      recipients: parsed.recipients?.length ? parsed.recipients : structuredClone(initialState.recipients),
+      months: parsed.months?.length ? parsed.months : structuredClone(initialState.months),
     };
   } catch {
-    return structuredClone(initialState);
+    return { ...structuredClone(initialState), view: 'dashboard' };
   }
 }
 
@@ -115,23 +141,43 @@ function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
+function closeSheets() {
+  els.optionsOverlay?.classList.add('hidden');
+  els.optionsOverlay && (els.optionsOverlay.hidden = true);
+  els.historyOverlay?.classList.add('hidden');
+  els.historyOverlay && (els.historyOverlay.hidden = true);
+  els.monthMenu?.classList.add('hidden');
+  els.monthMenu && (els.monthMenu.hidden = true);
+}
+
+function activeScreen() {
+  return state.view || 'dashboard';
+}
+
+function setActiveScreen(view) {
+  closeSheets();
+  state.view = view;
+  saveState();
+  syncUI(false);
+}
+
 function formatAmount(amount) {
   return currency.format(amount);
 }
 
 function formatBalance(amount) {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-IN', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'INR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
 }
 
 function formatTransaction(amount) {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-IN', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'INR',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
@@ -197,7 +243,7 @@ function renderTransactions() {
       </div>
       <div class="transaction-row-right">
         <span class="badge ${item.type === 'income' ? 'positive' : 'negative'}">${item.tag}</span>
-        <span class="transaction-amount">${item.amount < 0 ? '-' : '+'}${formatTransaction(Math.abs(item.amount)).replace('$', '$')}</span>
+        <span class="transaction-amount">${item.amount < 0 ? '-' : '+'}${formatTransaction(Math.abs(item.amount))}</span>
       </div>
     </div>
   `).join('');
@@ -210,8 +256,16 @@ function renderTransfer() {
     button.classList.toggle('is-active', button.dataset.mode === state.transferMode);
   });
   els.amountValue.textContent = state.transferAmount;
-  els.recipientName.textContent = state.transferName;
-  els.recipientNumber.textContent = state.recipientNumber;
+  const recipient = state.recipients[state.recipientIndex] || state.recipients[0];
+  els.recipientName.textContent = recipient.name;
+  els.recipientNumber.textContent = recipient.number;
+  state.transferName = recipient.name;
+  state.recipientNumber = recipient.number;
+
+  const recipientAvatar = document.querySelector('.recipient-avatar');
+  if (recipientAvatar) {
+    recipientAvatar.textContent = recipient.avatar;
+  }
 
   els.confirmTransfer.textContent = state.transferMode === 'send' ? 'Send money' : 'Receive money';
 }
@@ -258,6 +312,125 @@ function renderAnalytics() {
       <div class="flow-value">${item.value}%</div>
     </div>
   `).join('');
+
+  if (els.monthToggle) {
+    const month = state.months[state.activeMonthIndex] || state.months[0];
+    els.monthToggle.textContent = `${month} ▾`;
+  }
+
+  if (els.liveModeState) {
+    els.liveModeState.textContent = state.demoMode === false ? 'On' : 'Off';
+  }
+}
+
+function renderHistory() {
+  const items = state.accounts.flatMap((account) => account.transactions.map((item) => ({ account: account.name, ...item }))); 
+  if (els.historyList) {
+    els.historyList.innerHTML = items.map((item) => `
+      <div class="history-item">
+        <div>
+          <strong>${item.title}</strong>
+          <small>${item.account} · ${item.meta} · ${item.category}</small>
+        </div>
+        <div class="history-item-right">
+          <strong>${item.amount < 0 ? '-' : '+'}${formatTransaction(Math.abs(item.amount))}</strong>
+          <small>${item.type}</small>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+function renderMonthMenu() {
+  if (!els.monthMenu) {
+    return;
+  }
+
+  const month = state.months[state.activeMonthIndex] || state.months[0];
+  els.monthMenu.innerHTML = state.months.map((item, index) => `
+    <button type="button" data-month-index="${index}" class="${item === month ? 'is-active' : ''}">${item}</button>
+  `).join('');
+
+  Array.from(els.monthMenu.querySelectorAll('[data-month-index]')).forEach((button) => {
+    button.addEventListener('click', () => {
+      state.activeMonthIndex = Number(button.dataset.monthIndex);
+      saveState();
+      renderAnalytics();
+      els.monthMenu.hidden = true;
+      els.monthMenu.classList.add('hidden');
+    });
+  });
+}
+
+function openMonthMenu() {
+  if (!els.monthMenu || !els.monthToggle) {
+    return;
+  }
+
+  const rect = els.monthToggle.getBoundingClientRect();
+  els.monthMenu.style.left = `${Math.max(12, rect.left)}px`;
+  els.monthMenu.style.top = `${rect.bottom + 10}px`;
+  els.monthMenu.hidden = false;
+  els.monthMenu.classList.remove('hidden');
+  renderMonthMenu();
+}
+
+function toggleOptionsSheet(open) {
+  if (!els.optionsOverlay) {
+    return;
+  }
+
+  els.optionsOverlay.hidden = !open;
+  els.optionsOverlay.classList.toggle('hidden', !open);
+}
+
+function toggleHistorySheet(open) {
+  if (!els.historyOverlay) {
+    return;
+  }
+
+  els.historyOverlay.hidden = !open;
+  els.historyOverlay.classList.toggle('hidden', !open);
+  if (open) {
+    renderHistory();
+  }
+}
+
+function resetDemoData() {
+  state = {
+    ...structuredClone(initialState),
+    view: 'dashboard',
+    demoMode: false,
+    accounts: [
+      { ...structuredClone(initialState.accounts[0]), balance: 0, transactions: [] },
+    ],
+    recipients: [
+      { name: '', number: '---- ----', avatar: '?' },
+    ],
+    months: structuredClone(initialState.months),
+    activeAccountIndex: 0,
+    recipientIndex: 0,
+    activeMonthIndex: 0,
+    transferAmount: '0.00',
+    transferName: '',
+    recipientNumber: '---- ----',
+  };
+  saveState();
+  closeSheets();
+  syncUI();
+}
+
+function renderScreens() {
+  els.screens.forEach((screen) => {
+    screen.classList.toggle('is-active', screen.id === activeScreen());
+  });
+
+  els.screenSwitcherButtons.forEach((button) => {
+    const target = button.dataset.screenTarget;
+    if (target) {
+      button.classList.toggle('is-active', target === activeScreen());
+    }
+  });
 }
 
 function aggregateByCategory(items) {
@@ -295,6 +468,22 @@ function setActiveAccount(index) {
   if (card) {
     card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   }
+}
+
+function cycleAccount() {
+  setActiveAccount((state.activeAccountIndex + 1) % state.accounts.length);
+}
+
+function cycleRecipient() {
+  state.recipientIndex = (state.recipientIndex + 1) % state.recipients.length;
+  saveState();
+  renderTransfer();
+}
+
+function cycleMonth() {
+  state.activeMonthIndex = (state.activeMonthIndex + 1) % state.months.length;
+  saveState();
+  renderAnalytics();
 }
 
 function setTransferMode(mode) {
@@ -377,7 +566,7 @@ function confirmTransfer() {
 
   state.transferAmount = '0.00';
   saveState();
-  syncUI();
+  setActiveScreen('dashboard');
 }
 
 function inferCategory(name) {
@@ -422,6 +611,14 @@ function exportCsv() {
 }
 
 function bindEvents() {
+  els.screenButtons.forEach((button) => {
+    if (!button.dataset.screenTarget) {
+      return;
+    }
+
+    button.addEventListener('click', () => setActiveScreen(button.dataset.screenTarget));
+  });
+
   els.modeButtons.forEach((button) => {
     button.addEventListener('click', () => setTransferMode(button.dataset.mode));
   });
@@ -432,22 +629,52 @@ function bindEvents() {
 
   els.confirmTransfer.addEventListener('click', confirmTransfer);
   els.exportReport.addEventListener('click', exportCsv);
+  els.monthToggle?.addEventListener('click', openMonthMenu);
+  els.optionsOverlay?.addEventListener('click', (event) => {
+    if (event.target === els.optionsOverlay) {
+      toggleOptionsSheet(false);
+    }
+  });
+  els.historyOverlay?.addEventListener('click', (event) => {
+    if (event.target === els.historyOverlay) {
+      toggleHistorySheet(false);
+    }
+  });
 
   els.openTransferButtons.forEach((button) => {
     button.addEventListener('click', () => {
       setTransferMode(button.dataset.openTransfer);
-      scrollToSection('#transfer');
+      setActiveScreen('transfer');
     });
   });
 
-  els.scrollTargets.forEach((button) => {
-    button.addEventListener('click', (event) => {
-      event.preventDefault();
-      const target = button.getAttribute('data-scroll-to');
-      if (target) {
-        scrollToSection(target);
-      }
-    });
+  els.cycleRecipientButtons.forEach((button) => {
+    button.addEventListener('click', cycleRecipient);
+  });
+
+  els.openOptionsButtons.forEach((button) => {
+    button.addEventListener('click', () => toggleOptionsSheet(true));
+  });
+
+  els.openHistoryButtons.forEach((button) => {
+    button.addEventListener('click', () => toggleHistorySheet(true));
+  });
+
+  els.closeSheetButtons.forEach((button) => {
+    button.addEventListener('click', () => closeSheets());
+  });
+
+  els.liveToggleButtons.forEach((button) => {
+    button.addEventListener('click', resetDemoData);
+  });
+
+  document.querySelector('[data-switch-account]')?.addEventListener('click', cycleAccount);
+  document.querySelector('[aria-label="Refresh account"]')?.addEventListener('click', cycleAccount);
+  document.addEventListener('click', (event) => {
+    if (els.monthMenu && !els.monthMenu.hidden && !els.monthMenu.contains(event.target) && event.target !== els.monthToggle) {
+      els.monthMenu.hidden = true;
+      els.monthMenu.classList.add('hidden');
+    }
   });
 
   els.accountCarousel.addEventListener('scroll', () => {
@@ -465,13 +692,6 @@ function bindEvents() {
   }, { passive: true });
 }
 
-function scrollToSection(selector) {
-  const section = document.querySelector(selector);
-  if (section) {
-    section.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-  }
-}
-
 function syncUI(scrollAccount = true) {
   updateTopSummary();
   renderAccounts();
@@ -479,11 +699,14 @@ function syncUI(scrollAccount = true) {
   renderTransfer();
   renderLegend();
   renderAnalytics();
+  renderHistory();
+  renderScreens();
+  renderMonthMenu();
 
   if (scrollAccount) {
     const active = els.accountTrack.querySelector(`[data-account-index="${state.activeAccountIndex}"]`);
     if (active) {
-      active.scrollIntoView({ behavior: 'instant', inline: 'center', block: 'nearest' });
+      active.scrollIntoView({ behavior: 'auto', inline: 'center', block: 'nearest' });
     }
   }
 }

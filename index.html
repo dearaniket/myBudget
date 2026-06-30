@@ -13,12 +13,10 @@
 <body>
   <div class="page-shell">
     <main class="screens" id="screens">
-      <section class="screen" id="dashboard" aria-label="Dashboard">
+      <section class="screen is-active" id="dashboard" aria-label="Dashboard">
         <article class="device" data-device="dashboard">
-          <div class="status-bar"><span>9:41</span><span class="status-icons">◔ 􀙇 􀐫</span></div>
-
           <div class="dashboard-top">
-            <button class="pill profile-pill" type="button" data-switch-account aria-label="Active account">
+            <button class="pill profile-pill" type="button" data-switch-account aria-label="Switch account">
               <span class="avatar" id="activeAvatar">E</span>
               <span id="activeName">Emma Smith</span>
             </button>
@@ -33,7 +31,7 @@
               <span class="hero-balance-label">Your balance</span>
               <span class="visa-mark">VISA</span>
             </div>
-            <div class="hero-balance" id="activeBalance">$14,500</div>
+            <div class="hero-balance" id="activeBalance">₹14,500</div>
             <div class="card-meta">
               <span id="activeCardName">Emma Smith</span>
               <span id="activeCardNumber">**** 3098</span>
@@ -43,8 +41,8 @@
           <section class="quick-actions" aria-label="Quick actions">
             <button type="button" class="action-tile action-primary" data-open-transfer="receive" aria-label="Receive money">+</button>
             <button type="button" class="action-tile" data-open-transfer="send" aria-label="Send money">↓</button>
-            <button type="button" class="action-tile">↗</button>
-            <button type="button" class="action-tile">⌂</button>
+            <button type="button" class="action-tile" data-screen-target="transfer" aria-label="Open transfer screen from quick actions">↗</button>
+            <button type="button" class="action-tile" data-screen-target="analytics" aria-label="Open analytics screen from quick actions">⌂</button>
           </section>
 
           <section class="account-carousel" aria-label="Bank accounts">
@@ -59,36 +57,34 @@
           <section class="transactions">
             <div class="section-head">
               <h2>Transactions</h2>
-              <a href="#analytics">View all</a>
+              <button type="button" class="text-button" data-open-history>View all</button>
             </div>
             <div class="transaction-list" id="transactionList"></div>
           </section>
 
           <footer class="bottom-nav" aria-label="Primary navigation">
-            <button type="button" class="bottom-nav-item is-active">⌂</button>
-            <button type="button" class="bottom-nav-item">◌</button>
+            <button type="button" class="bottom-nav-item is-active" data-screen-target="dashboard">⌂</button>
+            <button type="button" class="bottom-nav-item" data-screen-target="transfer" aria-label="Open transfer screen from bottom navigation">◌</button>
             <button type="button" class="bottom-nav-item bottom-nav-plus" data-open-transfer="receive">+</button>
-            <button type="button" class="bottom-nav-item">◌</button>
-            <button type="button" class="bottom-nav-item">◌</button>
+            <button type="button" class="bottom-nav-item" data-screen-target="analytics" aria-label="Open analytics screen from bottom navigation">◌</button>
+            <button type="button" class="bottom-nav-item" data-screen-target="dashboard" aria-label="Return to dashboard from bottom navigation">◌</button>
           </footer>
         </article>
       </section>
 
       <section class="screen" id="transfer" aria-label="Transfer money">
         <article class="device" data-device="transfer">
-          <div class="status-bar"><span>9:41</span><span class="status-icons">◔ 􀙇 􀐫</span></div>
-
           <div class="screen-titlebar">
-            <button class="icon-button" type="button" aria-label="Back to dashboard" data-scroll-to="#dashboard">‹</button>
+            <button class="icon-button" type="button" aria-label="Back to dashboard" data-screen-target="dashboard">‹</button>
             <h2>Transfer money</h2>
-            <button class="icon-button" type="button" aria-label="More options">⋮</button>
+            <button class="icon-button" type="button" aria-label="More options" data-open-options>⋮</button>
           </div>
 
           <section class="transfer-card">
             <div class="section-head compact">
               <h2>Recipient</h2>
             </div>
-            <button class="recipient-row" type="button">
+            <button class="recipient-row" type="button" data-cycle-recipient aria-label="Change recipient">
               <span class="recipient-avatar">R</span>
               <span class="recipient-copy">
                 <strong id="recipientName">Rita Davis</strong>
@@ -106,7 +102,7 @@
 
             <div class="amount-panel">
               <span class="amount-label">Amount</span>
-              <div class="amount-display"><span class="currency">$</span><span id="amountValue">218.00</span></div>
+              <div class="amount-display"><span class="currency">₹</span><span id="amountValue">218.00</span></div>
             </div>
           </section>
 
@@ -126,16 +122,22 @@
           </section>
 
           <button class="confirm-button" type="button" id="confirmTransfer">Send money</button>
+
+          <footer class="bottom-nav" aria-label="Primary navigation">
+            <button type="button" class="bottom-nav-item" data-screen-target="dashboard" aria-label="Open dashboard screen from transfer navigation">⌂</button>
+            <button type="button" class="bottom-nav-item is-active" data-screen-target="transfer">◔</button>
+            <button type="button" class="bottom-nav-item bottom-nav-plus" data-open-transfer="receive">+</button>
+            <button type="button" class="bottom-nav-item" data-screen-target="analytics" aria-label="Open analytics screen from transfer navigation">◌</button>
+            <button type="button" class="bottom-nav-item" data-screen-target="dashboard" aria-label="Return to dashboard from transfer navigation">◌</button>
+          </footer>
         </article>
       </section>
 
       <section class="screen" id="analytics" aria-label="Analytics">
         <article class="device" data-device="analytics">
-          <div class="status-bar"><span>9:41</span><span class="status-icons">◔ 􀙇 􀐫</span></div>
-
           <div class="screen-titlebar analytics-titlebar">
             <h2>Expenses</h2>
-            <button class="pill month-pill" type="button">June ▾</button>
+            <button class="pill month-pill" type="button" id="monthToggle" aria-label="Change month">June ▾</button>
           </div>
 
           <section class="analytics-card">
@@ -143,7 +145,7 @@
               <div class="donut" id="donutChart">
                 <div class="donut-center">
                   <span>Total expenses</span>
-                  <strong id="expenseTotal">$581.46</strong>
+                  <strong id="expenseTotal">₹581.46</strong>
                 </div>
               </div>
             </div>
@@ -154,7 +156,7 @@
           <section class="analytics-card">
             <div class="section-head">
               <h2>Recent expenses</h2>
-              <a href="#">View all</a>
+              <button type="button" class="text-button" data-open-history>View all</button>
             </div>
             <div class="expense-list" id="expenseList"></div>
           </section>
@@ -168,16 +170,44 @@
           </section>
 
           <footer class="bottom-nav" aria-label="Primary navigation">
-            <button type="button" class="bottom-nav-item">⌂</button>
-            <button type="button" class="bottom-nav-item is-active">◔</button>
+            <button type="button" class="bottom-nav-item" data-screen-target="dashboard" aria-label="Open dashboard screen from analytics navigation">⌂</button>
+            <button type="button" class="bottom-nav-item is-active" data-screen-target="analytics">◔</button>
             <button type="button" class="bottom-nav-item bottom-nav-plus" data-open-transfer="receive">+</button>
-            <button type="button" class="bottom-nav-item">◌</button>
-            <button type="button" class="bottom-nav-item">◌</button>
+            <button type="button" class="bottom-nav-item" data-screen-target="transfer" aria-label="Open transfer screen from analytics navigation">◌</button>
+            <button type="button" class="bottom-nav-item" data-screen-target="dashboard" aria-label="Return to dashboard from analytics navigation">◌</button>
           </footer>
         </article>
       </section>
     </main>
   </div>
+
+  <div class="overlay" id="optionsOverlay" hidden>
+    <div class="sheet">
+      <div class="sheet-header">
+        <h2>Options</h2>
+        <button type="button" class="icon-button sheet-close" aria-label="Close options" data-close-sheet>×</button>
+      </div>
+      <button type="button" class="sheet-row" data-live-toggle>
+        <span>
+          <strong>Live mode</strong>
+          <small>Erase the demo data and start with a clean app state.</small>
+        </span>
+        <span class="toggle-pill" id="liveModeState">Off</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="overlay" id="historyOverlay" hidden>
+    <div class="sheet sheet-large">
+      <div class="sheet-header">
+        <h2>All transactions</h2>
+        <button type="button" class="icon-button sheet-close" aria-label="Close history" data-close-sheet>×</button>
+      </div>
+      <div class="history-list" id="historyList"></div>
+    </div>
+  </div>
+
+  <div class="month-menu" id="monthMenu" hidden></div>
 
   <script src="app.js"></script>
 </body>

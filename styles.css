@@ -68,23 +68,18 @@ a {
 }
 
 .screens {
-  display: flex;
-  align-items: flex-start;
-  gap: 28px;
-  overflow-x: auto;
-  padding: 8px 2px 24px;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-}
-
-.screens::-webkit-scrollbar {
-  display: none;
+  position: relative;
+  min-height: 844px;
 }
 
 .screen {
-  flex: 0 0 auto;
+  display: none;
   width: min(100%, 390px);
-  scroll-snap-align: center;
+  margin: 0 auto;
+}
+
+.screen.is-active {
+  display: block;
 }
 
 .device {
@@ -98,43 +93,6 @@ a {
   color: var(--text);
   padding: 18px 16px 16px;
   overflow: hidden;
-}
-
-.device::before {
-  content: '';
-  position: absolute;
-  inset: 10px;
-  border-radius: 34px;
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  pointer-events: none;
-}
-
-.device::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: 7px;
-  width: 132px;
-  height: 5px;
-  border-radius: 999px;
-  transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.93);
-}
-
-.status-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 12px 10px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-.status-icons {
-  letter-spacing: 0.15em;
-  font-size: 0.72rem;
-  opacity: 0.92;
 }
 
 .dashboard-top,
@@ -337,6 +295,13 @@ a {
 .section-head span {
   font-size: 0.8rem;
   color: rgba(245, 247, 251, 0.58);
+}
+
+.text-button {
+  padding: 0;
+  background: transparent;
+  color: rgba(245, 247, 251, 0.78);
+  font-size: 0.8rem;
 }
 
 .section-head.compact {
@@ -789,9 +754,145 @@ a:focus-visible {
   outline-offset: 2px;
 }
 
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(2, 6, 23, 0.42);
+  backdrop-filter: blur(8px);
+  z-index: 40;
+  padding: 20px;
+}
+
+.overlay[hidden],
+.month-menu[hidden] {
+  display: none !important;
+}
+
+.sheet {
+  width: min(100%, 420px);
+  border-radius: 28px;
+  background: #121212;
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
+  padding: 18px;
+}
+
+.sheet-large {
+  width: min(100%, 560px);
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.sheet-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.sheet-close {
+  width: 34px;
+  height: 34px;
+}
+
+.sheet-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  background: transparent;
+  color: var(--text);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sheet-row strong,
+.history-item strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.sheet-row small,
+.history-item small {
+  display: block;
+  color: rgba(246, 247, 251, 0.56);
+  line-height: 1.4;
+}
+
+.toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #111;
+  font-weight: 700;
+}
+
+.month-menu {
+  position: fixed;
+  min-width: 140px;
+  padding: 10px;
+  border-radius: 18px;
+  background: #121212;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
+  z-index: 45;
+}
+
+.month-menu button {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  text-align: left;
+  color: var(--text);
+}
+
+.month-menu button:hover,
+.month-menu button:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.history-list {
+  display: grid;
+  gap: 10px;
+  max-height: min(70vh, 560px);
+  overflow: auto;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.history-item-right {
+  text-align: right;
+}
+
 @media (min-width: 980px) {
-  .screens {
-    justify-content: center;
+  .page-shell {
+    width: min(1200px, calc(100vw - 32px));
+  }
+
+  .screen {
+    width: min(100%, 430px);
   }
 }
 
@@ -801,9 +902,13 @@ a:focus-visible {
     padding: 16px 0 28px;
   }
 
-  .screens {
-    padding-inline: 16px;
-    gap: 18px;
+  .app-switcher {
+    display: flex;
+    width: calc(100% - 32px);
+  }
+
+  .switcher-pill {
+    flex: 1;
   }
 
   .screen {
