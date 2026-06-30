@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <title>Budget Flow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <main class="screens" id="screens">
+      <section class="screen" id="dashboard" aria-label="Dashboard">
+        <article class="device" data-device="dashboard">
+          <div class="status-bar"><span>9:41</span><span class="status-icons">◔ 􀙇 􀐫</span></div>
+
+          <div class="dashboard-top">
+            <button class="pill profile-pill" type="button" data-switch-account aria-label="Active account">
+              <span class="avatar" id="activeAvatar">E</span>
+              <span id="activeName">Emma Smith</span>
+            </button>
+            <button class="icon-button" type="button" aria-label="Refresh account">
+              ↻
+            </button>
+          </div>
+
+          <section class="hero-card">
+            <div class="card-chip"></div>
+            <div class="hero-card-top">
+              <span class="hero-balance-label">Your balance</span>
+              <span class="visa-mark">VISA</span>
+            </div>
+            <div class="hero-balance" id="activeBalance">$14,500</div>
+            <div class="card-meta">
+              <span id="activeCardName">Emma Smith</span>
+              <span id="activeCardNumber">**** 3098</span>
+            </div>
+          </section>
+
+          <section class="quick-actions" aria-label="Quick actions">
+            <button type="button" class="action-tile action-primary" data-open-transfer="receive" aria-label="Receive money">+</button>
+            <button type="button" class="action-tile" data-open-transfer="send" aria-label="Send money">↓</button>
+            <button type="button" class="action-tile">↗</button>
+            <button type="button" class="action-tile">⌂</button>
+          </section>
+
+          <section class="account-carousel" aria-label="Bank accounts">
+            <div class="section-head">
+              <h2>Accounts</h2>
+              <span>Swipe left or right</span>
+            </div>
+            <div class="carousel-track" id="accountTrack"></div>
+            <div class="carousel-dots" id="accountDots" aria-hidden="true"></div>
+          </section>
+
+          <section class="transactions">
+            <div class="section-head">
+              <h2>Transactions</h2>
+              <a href="#analytics">View all</a>
+            </div>
+            <div class="transaction-list" id="transactionList"></div>
+          </section>
+
+          <footer class="bottom-nav" aria-label="Primary navigation">
+            <button type="button" class="bottom-nav-item is-active">⌂</button>
+            <button type="button" class="bottom-nav-item">◌</button>
+            <button type="button" class="bottom-nav-item bottom-nav-plus" data-open-transfer="receive">+</button>
+            <button type="button" class="bottom-nav-item">◌</button>
+            <button type="button" class="bottom-nav-item">◌</button>
+          </footer>
+        </article>
+      </section>
+
+      <section class="screen" id="transfer" aria-label="Transfer money">
+        <article class="device" data-device="transfer">
+          <div class="status-bar"><span>9:41</span><span class="status-icons">◔ 􀙇 􀐫</span></div>
+
+          <div class="screen-titlebar">
+            <button class="icon-button" type="button" aria-label="Back to dashboard" data-scroll-to="#dashboard">‹</button>
+            <h2>Transfer money</h2>
+            <button class="icon-button" type="button" aria-label="More options">⋮</button>
+          </div>
+
+          <section class="transfer-card">
+            <div class="section-head compact">
+              <h2>Recipient</h2>
+            </div>
+            <button class="recipient-row" type="button">
+              <span class="recipient-avatar">R</span>
+              <span class="recipient-copy">
+                <strong id="recipientName">Rita Davis</strong>
+                <small id="recipientNumber">**** 9303</small>
+              </span>
+              <span class="recipient-arrow">›</span>
+            </button>
+          </section>
+
+          <section class="transfer-card transfer-mode-card">
+            <div class="mode-switch" role="tablist" aria-label="Transaction type">
+              <button class="mode-button is-active" type="button" data-mode="send">Send</button>
+              <button class="mode-button" type="button" data-mode="receive">Receive</button>
+            </div>
+
+            <div class="amount-panel">
+              <span class="amount-label">Amount</span>
+              <div class="amount-display"><span class="currency">$</span><span id="amountValue">218.00</span></div>
+            </div>
+          </section>
+
+          <section class="keypad" aria-label="Amount keypad">
+            <button type="button" class="key">1</button>
+            <button type="button" class="key">2</button>
+            <button type="button" class="key">3</button>
+            <button type="button" class="key">4</button>
+            <button type="button" class="key">5</button>
+            <button type="button" class="key">6</button>
+            <button type="button" class="key">7</button>
+            <button type="button" class="key">8</button>
+            <button type="button" class="key">9</button>
+            <button type="button" class="key key-subtle" data-key=".">.</button>
+            <button type="button" class="key">0</button>
+            <button type="button" class="key key-subtle" data-key="backspace">⌫</button>
+          </section>
+
+          <button class="confirm-button" type="button" id="confirmTransfer">Send money</button>
+        </article>
+      </section>
+
+      <section class="screen" id="analytics" aria-label="Analytics">
+        <article class="device" data-device="analytics">
+          <div class="status-bar"><span>9:41</span><span class="status-icons">◔ 􀙇 􀐫</span></div>
+
+          <div class="screen-titlebar analytics-titlebar">
+            <h2>Expenses</h2>
+            <button class="pill month-pill" type="button">June ▾</button>
+          </div>
+
+          <section class="analytics-card">
+            <div class="donut-wrap">
+              <div class="donut" id="donutChart">
+                <div class="donut-center">
+                  <span>Total expenses</span>
+                  <strong id="expenseTotal">$581.46</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="legend" id="categoryLegend"></div>
+          </section>
+
+          <section class="analytics-card">
+            <div class="section-head">
+              <h2>Recent expenses</h2>
+              <a href="#">View all</a>
+            </div>
+            <div class="expense-list" id="expenseList"></div>
+          </section>
+
+          <section class="analytics-card">
+            <div class="section-head compact">
+              <h2>Monthly flow</h2>
+              <button class="pill export-pill" type="button" id="exportReport">Export</button>
+            </div>
+            <div class="bars" id="flowBars" aria-label="Weekly flow chart"></div>
+          </section>
+
+          <footer class="bottom-nav" aria-label="Primary navigation">
+            <button type="button" class="bottom-nav-item">⌂</button>
+            <button type="button" class="bottom-nav-item is-active">◔</button>
+            <button type="button" class="bottom-nav-item bottom-nav-plus" data-open-transfer="receive">+</button>
+            <button type="button" class="bottom-nav-item">◌</button>
+            <button type="button" class="bottom-nav-item">◌</button>
+          </footer>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
